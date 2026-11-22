@@ -130,7 +130,7 @@ class LLMService:
             raise LLMProviderError(f"Unsupported LLM provider '{self.provider}'. Supported: groq, gemini, openai, anthropic, mock.")
 
     async def _call_groq(self, user_prompt: str) -> Dict[str, Any]:
-        """Call Groq API using groq Python SDK with JSON mode."""
+        """Call Groq API using groq Python SDK with JSON mode and Pydantic validation."""
         api_key = settings.GROQ_API_KEY
         if not api_key:
             raise LLMProviderError(
@@ -141,15 +141,33 @@ class LLMService:
             import groq
             client = groq.AsyncGroq(api_key=api_key)
 
-            completion = await client.chat.completions.create(
-                model=settings.GROQ_MODEL,
-                messages=[
-                    {"role": "system", "content": ANALYSIS_SYSTEM_PROMPT},
-                    {"role": "user", "content": user_prompt},
-                ],
-                response_format={"type": "json_object"},
-                temperature=0.2,
-            )
+            messages = [
+                {"role": "system", "content": ANALYSIS_SYSTEM_PROMPT},
+                {"role": "user", "content": user_prompt},
+            ]
+
+            try:
+                completion = await client.chat.completions.create(
+                    model=settings.GROQ_MODEL,
+                    messages=messages,
+                    response_format={"type": "json_object"},
+                    max_tokens=4096,
+                    temperature=0.2,
+                )
+            except Exception as req_err:
+                # If Groq's server-side JSON validator rejects due to reasoning traces (json_validate_failed),
+                # retry with raw completion and parse using our robust JSON sanitizer
+                err_str = str(req_err).lower()
+                if "json_validate_failed" in err_str or "failed to validate json" in err_str:
+                    logger.warning(f"Groq json_validate_failed encountered. Retrying without constrained response_format: {req_err}")
+                    completion = await client.chat.completions.create(
+                        model=settings.GROQ_MODEL,
+                        messages=messages,
+                        max_tokens=4096,
+                        temperature=0.2,
+                    )
+                else:
+                    raise
 
             raw_text = completion.choices[0].message.content
             if not raw_text:
