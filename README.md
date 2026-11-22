@@ -655,9 +655,9 @@ The implementation meets all technical requirements, including SSRF protection, 
 Here are my submission details:
 
 1. Full Name: [Your Full Name]
-2. Demo Link: https://[your-render-subdomain].onrender.com
-3. API Documentation Link: https://[your-render-subdomain].onrender.com/docs
-4. Public GitHub Repository Link: https://github.com/[your-username]/[repo-name]
+2. Demo Link: https://ai-powered-website-link-analysis-api-mmws.onrender.com
+3. API Documentation Link: https://ai-powered-website-link-analysis-api-mmws.onrender.com/docs
+4. Public GitHub Repository Link: https://github.com/SupercopV/ai-powered-website-link-analysis-api
 5. Contact Number: [Your Phone Number]
 6. Current Location: [Your City, Country]
 7. Preferred Date and Time for Final Discussion: [e.g., Nov 24, 2026 at 3:00 PM IST]
